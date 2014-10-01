@@ -1,0 +1,25 @@
+{
+    "name": "kodeks/php-resque",
+    "description": "",
+    "authors": [
+        {
+            "name": "Alex_Sh",
+            "email": "alex_sh@kodeks.ru"
+        }
+    ],
+    "require": {
+        	"php": ">=5.4.0",
+                "illuminate/config": "4.1.x",
+                "illuminate/queue": "4.1.x",
+                "chrisboulton/php-resque": "dev-master"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "Kodeks\\PhpResque\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
