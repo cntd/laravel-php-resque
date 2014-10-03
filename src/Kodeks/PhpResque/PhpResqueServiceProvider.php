@@ -3,7 +3,8 @@
 use Illuminate\Queue\QueueServiceProvider;
 use Config;
 use Kodeks\PhpResque\Connectors\ResqueConnector;
-use Kodeks\PhpResque\Failer\FailedJobProvider;
+use Kodeks\PhpResque\Console\ListenCommand;
+use Kodeks\PhpResque\Console\SchedulerCommand;
 
 class PhpResqueServiceProvider extends QueueServiceProvider {
 
@@ -11,7 +12,7 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
             parent::__construct($app); 
         }
         
-	public function registerConnectors($manager) { 
+	public function registerConnectors($manager) {
             parent::registerConnectors($manager);
             $this->registerResqueConnector($manager);
         }
@@ -21,14 +22,14 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
             foreach ($connections as $connection) {
                 if ($connection['driver'] !== 'resque') {
                     $manager->addConnector($connection['driver'], function () {
-                    return new ResqueConnector();
+                        return new ResqueConnector();
                     });
                 }
             }
             $manager->addConnector('resque', function () {
                 $config = Config::get('database.redis.default');
                 Config::set('queue.connections.resque', array_merge($config, ['driver' => 'resque']));
-                return new ResqueConnector;
+                return new ResqueConnector();
             });
         }
     
@@ -36,39 +37,20 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
 
 	public function boot() {  
             parent::boot();
+            $this->app->bind('kodeks::command.resque.listen', function($app) {
+                return new ListenCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.listen'
+            ));
+            $this->app->bind('kodeks::command.resque.scheduler', function($app) {
+                return new SchedulerCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.scheduler'
+            ));
+   
             $this->package('kodeks/php-resque');
 	}
-        
-        protected function registerManager()
-	{
-            $this->app->bindShared('queue', function($app) {
-                $manager = new QueueManager($app);
-                $this->registerConnectors($manager);
-                return $manager;
-            });
-            $manager = new \Illuminate\Queue\QueueManager($this->app);
-            $this->registerConnectors($manager);
-	}
-        
-        protected function registerFailedJobServices()
-	{
-            $this->app->bindShared('queue.failer', function($app) {
-                return new FailedJobProvider();
-            });
-	}
-
-	public function register() {
-            $this->registerManager();
-            $this->registerWorker();
-            $this->registerListener();
-            $this->registerSubscriber();
-            $this->registerFailedJobServices();
-            $this->registerQueueClosure();
-	}
-
-	public function provides() {
-            return array();
-	}
-        
 
 }

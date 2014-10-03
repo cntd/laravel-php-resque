@@ -1,21 +1,15 @@
 {
     "name": "kodeks/php-resque",
     "description": "",
-    "authors": [
-        {
-            "name": "Alex_Sh",
-            "email": "alex_sh@kodeks.ru"
-        }
-    ],
     "require": {
         	"php": ">=5.4.0",
-                "illuminate/config": "4.1.x",
-                "illuminate/queue": "4.1.x",
-                "chrisboulton/php-resque": "dev-master"
+                "psr/log": "1.0.0",
+                "illuminate/config": "4.2.x",
+                "illuminate/queue": "4.2.x"
     },
     "autoload": {
         "classmap": [
-            "src/migrations"
+            "src/Kodeks/PhpResque/Mailer"
         ],
         "psr-0": {
             "Kodeks\\PhpResque\\": "src/"
