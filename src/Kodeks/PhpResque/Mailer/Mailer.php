@@ -4,9 +4,6 @@ class Mailer {
     public function handleQueuedMessage($job, $data) { 
         Log::info('Sending mail data: ',$data);
         try {
-            if(isset($data[0]['callback'])) {
-                $data=$data[0];
-            } 
             
             $cb = isset($data["callback"]) ? unserialize($data["callback"]) : null;
             if(!($cb instanceof SerializableClosure)) {
