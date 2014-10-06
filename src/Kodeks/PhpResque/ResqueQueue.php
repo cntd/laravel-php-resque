@@ -18,19 +18,31 @@ class ResqueQueue extends Queue  {
         return $queue ? : $this->_default;
     }
     
-    protected function jobFilter($job, array $data) {
+    protected function getCustomMethod($job) {
+        $jobData = explode("@", $job); 
+        return $jobData[1];
+    }
+    
+    protected function getClearedJobName($job) {
+        $jobData = explode("@", $job); 
+        return $jobData[0];
+    }
+    
+    protected function isCustomMethod($job) {
         if(is_string($job) && strpos($job, "@")!==false) {
-            $jobData = explode("@", $job); 
-            $data[Resque_Job_Class::INSTANCE_METHOD_NAME]=$jobData[1];
-            return $jobData[0];
+            return true;
         }
-        return $job;
+        return false;
     }
     
     public function push($job, $data = [], $queue = NULL, $track = true) {
         $queue = $this->getQueue($queue);
-        $jobFiltred = $this->jobFilter($job, $data);
-        return Resque::enqueue($queue, $jobFiltred, $data, $track);
+        if($this->isCustomMethod($job)) {
+           $args=[$queue, $this->getClearedJobName($job), $data, $track, $this->getCustomMethod($job)];  
+        } else {
+           $args=[$queue, $job, $data, $track];
+        }
+        call_user_func_array("Resque::enqueue",$args);
     }
     
     
@@ -70,18 +82,22 @@ class ResqueQueue extends Queue  {
     }
 
     public function later($delay, $job, $data = [], $queue = NULL) {
-        $jobFiltred = $this->jobFilter($job, $data);
         $queue = $this->getQueue($queue);
         
         if (!class_exists('ResqueScheduler')) {  
             throw new Exception("Class ResqueScheduler not found");
         }
         $later = (is_null($queue) ? $job : $queue);
-        if (is_int($delay)) {
-            ResqueScheduler::enqueueIn($delay, $later, $jobFiltred, $data);
+        if($this->isCustomMethod($job)) {
+           $args=[$delay, $later, $this->getClearedJobName($job), $data, $this->getCustomMethod($job)];  
+        } else {
+           $args=[$delay, $later, $job, $data];
         }
-        else { 
-            ResqueScheduler::enqueueAt($delay, $later, $jobFiltred, $data);
+        
+        if (is_int($delay)) {
+            call_user_func_array("ResqueScheduler::enqueueIn",$args);
+        } else { 
+            call_user_func_array("ResqueScheduler::enqueueAt",$args);
         }
     }
     

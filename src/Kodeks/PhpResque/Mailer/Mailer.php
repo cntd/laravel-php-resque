@@ -1,10 +1,10 @@
 <?php
 use Illuminate\Support\SerializableClosure;
 class Mailer {
-    public function fire($job, $data) { 
+    public function handleQueuedMessage($job, $data) { 
         Log::info('Sending mail data: ',$data);
         try {
-            if(count($data)==1) {
+            if(isset($data[0]['callback'])) {
                 $data=$data[0];
             } 
             
