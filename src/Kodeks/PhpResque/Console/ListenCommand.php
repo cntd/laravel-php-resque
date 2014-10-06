@@ -30,7 +30,7 @@ public function fire() {
     $schedulerInterval = $this->input->getOption('scheduler-interval') ? $this->input->getOption('interval') : $interval;
     
     // Configuration
-    $config = array_merge(Config::get('database.redis.default', Config::get('queue.connections.resque', [])));
+    $config = array_merge(Config::get('database.redis.default'),Config::get('queue.connections.resque'));
     if (!isset($config['host'])) {
         $config['host'] = '127.0.0.1';
     }
