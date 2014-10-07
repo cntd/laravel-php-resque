@@ -5,6 +5,7 @@ use Config;
 use Kodeks\PhpResque\Connectors\ResqueConnector;
 use Kodeks\PhpResque\Console\ListenCommand;
 use Kodeks\PhpResque\Console\SchedulerCommand;
+use Kodeks\PhpResque\Console\StatCommand;
 
 class PhpResqueServiceProvider extends QueueServiceProvider {
 
@@ -48,6 +49,13 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
             });
             $this->commands(array(
                 'kodeks::command.resque.scheduler'
+            ));
+            
+            $this->app->bind('kodeks::command.resque.stat', function($app) {
+                return new StatCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.stat'
             ));
    
             $this->package('kodeks/php-resque');
