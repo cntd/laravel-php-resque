@@ -4,8 +4,7 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Config;
 use Resque;
-use Resque_Log;
-use Resque_Worker;
+use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 use ResqueScheduler_Worker;
 
 class ListenCommand extends Command {
@@ -25,7 +24,6 @@ public function fire() {
     $queue = $this->input->getOption('queue');
     $interval = $this->input->getOption('interval');
     $count = $this->input->getOption('count');
-    $blocking = $this->input->getOption('blocking');
     $scheduler = $this->input->getOption('scheduler') ? true : false;
     $schedulerInterval = $this->input->getOption('scheduler-interval') ? $this->input->getOption('interval') : $interval;
     
@@ -51,26 +49,23 @@ public function fire() {
     
     // Connect to redis
     Resque::setBackend($config['host'].':'.$config['port'], $config['database']);
-    
     $queues = explode(',', $queue);
-    $logger = new Resque_Log($logLevel);
     
     $this->info('Starting worker(s)...');
 
     $pid = -1;
     for($i = 0; $i < $count; ++$i) {
-        $pid = Resque::fork();
+        $pid = pcntl_fork();
         if($pid == -1) {
-            $logger->log('emergency', 'Could not fork worker {count}', array('count' => $i));
-            die();
+                die("Could not fork worker ".$i."\n");
         }
         // Child, start the worker
         else if(!$pid) {
-            $worker = new Resque_Worker($queues);
-            $worker->setLogger($logger);
-            $logger->log('notice', 'Starting worker {worker}', array('worker' => $worker));
-            $worker->work($interval, $blocking);
-            break;
+                $worker = new ResqueWorkerEx($queues);
+                $worker->logLevel = $logLevel;
+                fwrite(STDOUT, '*** Starting worker '.$worker."\n");
+                $worker->work($interval);
+                break;
         }
     }
     
@@ -87,7 +82,6 @@ protected function getOptions()
         ['queue', NULL, InputOption::VALUE_OPTIONAL, 'The queue to listen on', false],
         ['interval', NULL, InputOption::VALUE_OPTIONAL, 'Amount of time to delay failed jobs', 5],
         ['count', NULL, InputOption::VALUE_OPTIONAL, 'Number of workers to create', 1],
-        ['blocking', NULL, InputOption::VALUE_OPTIONAL, 'With blocking timeout', false],
         ['scheduler', NULL, InputOption::VALUE_OPTIONAL, 'With scheduler worker', false],
         ['scheduler-interval', NULL, InputOption::VALUE_OPTIONAL, 'Scheduler interval', false],
     ];
