@@ -63,6 +63,25 @@ class ResqueQueueTest extends TestCase {
         Queue::push("TestUnitJob@custom",[]);
     }  
     
+    public function testJobStatus()
+    { 
+        $testData = ["test_data"=>time()];
+        $id = Queue::push("TestUnitJob",$testData);
+        $status1 = Queue::jobStatus($id);
+        $this->assertEquals(Resque_Job_Status::STATUS_WAITING, $status1);
+        $this->assertTrue(Queue::isWaiting($id));
+        while($job = Queue::reserve()) {
+            $this->assertTrue($job instanceof Resque_Job);
+            if(empty(array_diff($job->payload["args"][0], $testData))) {
+                break;
+            }
+        }
+        $job -> updateStatus (Resque_Job_Status::STATUS_RUNNING);
+        $status2 = Queue::jobStatus($id);
+        $this->assertEquals(Resque_Job_Status::STATUS_RUNNING, $status2);
+    }
+    
+    
     public function testLaterPushByDate() {
         
         $this->clearRedisDates();

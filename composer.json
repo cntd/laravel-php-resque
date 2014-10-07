@@ -7,7 +7,8 @@
                 "illuminate/config": "4.2.x",
                 "illuminate/queue": "4.2.x",
                 "chrisboulton/php-resque": "1.2.x",
-                "chrisboulton/php-resque-scheduler": "1.1"
+                "chrisboulton/php-resque-scheduler": "1.1",
+                "nesbot/Carbon": "*"
                 
     },
     "autoload": {

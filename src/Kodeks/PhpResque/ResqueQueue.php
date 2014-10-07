@@ -37,7 +37,7 @@ class ResqueQueue extends Queue  {
         $queue = $this->getQueue($queue);
         $this->checkJob($job);
         $args=[$queue, $job, $data, $track];
-        call_user_func_array("Resque::enqueue",$args);
+        return call_user_func_array("Resque::enqueue",$args);
     }
     
     
