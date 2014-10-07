@@ -10,57 +10,64 @@ class ResqueQueueTest extends TestCase {
         require_once 'utils/TestUnitJob.php';
         $this->redis=App::make('redis');
      
-        $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));       
+        $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));     
+        $this->clearRedisQueue($this->config['queue']);
     }  
     
-    public function testQueuePushClosure()
-    { 
-        $testValue=rand(10, 999999);
-        $redis = $this->redis;
-
-        Queue::push(function ($job, $data) use ($testValue) {
-            $redis=App::make('redis');
-            $redis->set('testPushValue', $testValue);
-        });
-
-        $worker = new Resque_Worker($this->config['queue']);
-        $worker->work(0);
-        $getSettedValue=$redis->get('testPushValue');
-        $this->assertEquals($testValue, $getSettedValue);
+    private function clearRedisQueue($queue) {
+        while(Resque::pop($queue)) {}
     }
-    public function testQueuePush()
-    { 
-        $testValue=rand(10, 999999);
-        $redis = $this->redis;
-        $testData = ["test_data"=>$testValue];
-        Queue::push("TestUnitJob",$testData);
-
-        $worker = new Resque_Worker($this->config['queue']);
-        $worker->work(0);
-        $getSettedValue=$redis->get('TestUnitJob::fire');
-        $this->assertEquals(json_encode($testData), $getSettedValue);
-    }    
-    public function testQueuePushCustomMethod()
-    {   
-        $testValue=rand(10, 999999);
-        $redis = $this->redis;
-        $testData = ["test_data"=>$testValue];
-        Queue::push("TestUnitJob@custom",$testData);
-
-        $worker = new Resque_Worker($this->config['queue']);
-        $worker->work(0);
-        $getSettedValue=$redis->get('TestUnitJob::custom');
-        $this->assertEquals(json_encode($testData), $getSettedValue);
-    }  
+    
+    private function clearRedisRecord($rec) {
+        if(is_array($rec)) {
+           foreach($rec as $i) {
+               $this->redis->del($i); 
+           } 
+        } else {
+           $this->redis->del($rec); 
+        }
+    }
     
     private function clearRedisDates() {
         while (($timestamp = ResqueScheduler::nextDelayedTimestamp(null)) !== false) {
             ResqueScheduler::nextItemForTimestamp($timestamp);
         }
     }
+    /**
+     * @expectedException \Exception
+     */
+    public function testQueuePushClosure()
+    { 
+        Queue::push(function ()  {
+          
+        });
+    }
+    public function testQueuePush()
+    { 
+        $this->clearRedisRecord("TestUnitJob::fire");
+        
+        $redis = $this->redis;
+        $testData = ["test_data"=>time()];
+        Queue::push("TestUnitJob",$testData);
+        $worker = new Resque_Worker($this->config['queue']);
+        $worker->work(0);
+        usleep(100000);
+        $getSettedValue=$redis->get('TestUnitJob::fire');
+        $this->assertEquals(json_encode($testData), $getSettedValue);
+    }  
+    /**
+     * @expectedException Exception
+     */
+    public function testQueuePushCustomMethod()
+    {   
+        Queue::push("TestUnitJob@custom",[]);
+    }  
     
     public function testLaterPushByDate() {
+        
         $this->clearRedisDates();
+        $this->clearRedisRecord("TestUnitJob::fire");
+        
         $redis = $this->redis;
         $date = Carbon::now()->addSeconds(4);
         $testValue=time();
@@ -85,7 +92,7 @@ class ResqueQueueTest extends TestCase {
         
         $worker = new Resque_Worker($this->config['queue']);
         $worker->work(0);
-        sleep(1);
+        usleep(100000);
 
         $getSettedValue=$redis->get('TestUnitJob::fire');
         $this->assertEquals(json_encode($testData), $getSettedValue);
@@ -123,4 +130,5 @@ class ResqueQueueTest extends TestCase {
         $this->assertEquals(json_encode($testData), $getSettedValue);
         
     }
+  
 }

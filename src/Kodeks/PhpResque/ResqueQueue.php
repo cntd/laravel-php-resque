@@ -18,16 +18,6 @@ class ResqueQueue extends Queue  {
         return $queue ? : $this->_default;
     }
     
-    protected function getCustomMethod($job) {
-        $jobData = explode("@", $job); 
-        return $jobData[1];
-    }
-    
-    protected function getClearedJobName($job) {
-        $jobData = explode("@", $job); 
-        return $jobData[0];
-    }
-    
     protected function isCustomMethod($job) {
         if(is_string($job) && strpos($job, "@")!==false) {
             return true;
@@ -35,13 +25,18 @@ class ResqueQueue extends Queue  {
         return false;
     }
     
+    protected function checkJob($job) {
+        if($this->isCustomMethod($job)) {
+           throw new \Exception("Custom method support not available");
+        } else if($job instanceof \Closure) {
+           throw new \Exception("Closures not supported");    
+        }
+    }
+    
     public function push($job, $data = [], $queue = NULL, $track = true) {
         $queue = $this->getQueue($queue);
-        if($this->isCustomMethod($job)) {
-           $args=[$queue, $this->getClearedJobName($job), $data, $track, $this->getCustomMethod($job)];  
-        } else {
-           $args=[$queue, $job, $data, $track];
-        }
+        $this->checkJob($job);
+        $args=[$queue, $job, $data, $track];
         call_user_func_array("Resque::enqueue",$args);
     }
     
@@ -83,16 +78,12 @@ class ResqueQueue extends Queue  {
 
     public function later($delay, $job, $data = [], $queue = NULL) {
         $queue = $this->getQueue($queue);
-        
+        $this->checkJob($job);
         if (!class_exists('ResqueScheduler')) {  
-            throw new Exception("Class ResqueScheduler not found");
+            throw new \Exception("Class ResqueScheduler not found");
         }
         $later = (is_null($queue) ? $job : $queue);
-        if($this->isCustomMethod($job)) {
-           $args=[$delay, $later, $this->getClearedJobName($job), $data, $this->getCustomMethod($job)];  
-        } else {
-           $args=[$delay, $later, $job, $data];
-        }
+        $args=[$delay, $later, $job, $data];
         
         if (is_int($delay)) {
             call_user_func_array("ResqueScheduler::enqueueIn",$args);
@@ -110,7 +101,7 @@ class ResqueQueue extends Queue  {
     }
 
     public function pushRaw($payload, $queue = null, array $options = array()) {
-        throw new Exception("Method not available");
+        throw new \Exception("Method not available");
     }
     
     public static function __callStatic($method, $parameters) {

@@ -3,14 +3,11 @@
 class TestUnitJob {
     private $redis;
     
-    public function fire($job, $data) {  echo "fire...\n";
-        $this->redis->set('TestUnitJob::fire', json_encode($data));
+    public function perform() {  
+        $this->redis->set('TestUnitJob::fire', json_encode($this->args));
     }
-    public function custom($job, $data) { echo "custom...\n";
-        $this->redis->set('TestUnitJob::custom', json_encode($data));
-    }
-    
-    public function setUp() {  echo "set up...\n";
+
+    public function setUp() {
         $this->redis=App::make('redis');
         $this->redis->set('TestUnitJob::tearDown', 0);
         $this->redis->del('TestUnitJob::custom');
