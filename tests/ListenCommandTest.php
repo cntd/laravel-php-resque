@@ -1,7 +1,6 @@
 <?php
-use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 
-class ListenCommandTest extends TestCase {
+class ListenCommandTest extends CommandsTestCase {
     private $config;
     private $redis;
 
@@ -15,35 +14,6 @@ class ListenCommandTest extends TestCase {
     public function tearDown(){
         parent::tearDown();
         $this->killWorkers();
-    }
-    
-    public function output($text) {
-        echo "\n>".$text;
-    }
-    
-    private function killWorkers($pids=[]) {
-        
-        if(empty($pids)) {
-            $all = ResqueWorkerEx::all();
-            foreach($all as $work) {
-                $result = $work -> suicide();
-                $this->output("suicide id: ".$work);
-            }
-        } else if(is_array($pids)) {
-            foreach($pids as $id) {
-                if(ResqueWorkerEx::exists($id)) {
-                    $worker=Resque_Worker::find($id);
-                    $worker -> suicide();
-                    $this->output("suicide id: ".$work);
-                }
-            }
-        } else {
-            if(Resque_Worker::exists($pids)) {
-                $worker=ResqueWorkerEx::find($pids);
-                $worker -> suicide();
-                $this->output("suicide id: ".$work);
-            }
-        }
     }
     
     public function testCommandRunListner()

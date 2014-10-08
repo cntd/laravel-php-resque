@@ -1,18 +1,14 @@
 <?php namespace Kodeks\PhpResque\Console;
 
-use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
-use Config;
-use Resque;
 use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 use ResqueScheduler_Worker;
+use Kodeks\PhpResque\Console\ResqueCommand;
 
-class ListenCommand extends Command {
+class ListenCommand extends ResqueCommand {
 
 protected $name = 'resque:listen';
 protected $description = 'Run a resque worker';
-
-const DEFAULT_QUEUE = 'default';
 
 public function __construct(){
     parent::__construct();
@@ -27,28 +23,10 @@ public function fire() {
     $scheduler = $this->input->getOption('scheduler') ? true : false;
     $schedulerInterval = $this->input->getOption('scheduler-interval') ? $this->input->getOption('interval') : $interval;
     
-    // Configuration
-    $config = array_merge(Config::get('database.redis.default'),Config::get('queue.connections.resque'));
-    if (!isset($config['host'])) {
-        $config['host'] = '127.0.0.1';
-    }
-    if (!isset($config['port'])) {
-        $config['port'] = 6379;
-    }
-    if (!isset($config['database'])) {
-        $config['database'] = 0;
-    }
-    
-    if (!isset($config['database'])) {
-        $config['database'] = 0;
-    }
-    
     if(!$queue) {
-        $queue = isset($config['queue']) ? $config['queue'] : self::DEFAULT_QUEUE;
+        $queue = isset($this->config['queue']) ? $this->config['queue'] : self::DEFAULT_QUEUE;
     }
-    
-    // Connect to redis
-    Resque::setBackend($config['host'].':'.$config['port'], $config['database']);
+
     $queues = explode(',', $queue);
     
     $this->info('Starting worker(s)...');
@@ -63,7 +41,7 @@ public function fire() {
         else if(!$pid) {
                 $worker = new ResqueWorkerEx($queues);
                 $worker->logLevel = $logLevel;
-                fwrite(STDOUT, '*** Starting worker '.$worker."\n");
+                $this->info('*** Starting worker PID:'.$worker->getPid(). " ***");
                 $worker->work($interval);
                 break;
         }

@@ -1,15 +1,13 @@
 <?php namespace Kodeks\PhpResque\Console;
 
-use Illuminate\Console\Command;
-use Config;
 use Resque;
-use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 use Kodeks\PhpResque\Lib\ResqueStat;
 use ResqueScheduler;
 use Resque_Stat;
+use Kodeks\PhpResque\Console\ResqueCommand;
 use Carbon;
 
-class StatCommand extends Command {
+class StatCommand extends ResqueCommand {
     protected $name = 'resque:stat';
     protected $description = 'Display total number of failed/processed jobs, as well as various stats for each workers and queues.';
 
@@ -21,22 +19,6 @@ class StatCommand extends Command {
     }
 
     public function fire() {
-        // Configuration
-        $config = array_merge(Config::get('database.redis.default', Config::get('queue.connections.resque', [])));
-        if (!isset($config['host'])) {
-            $config['host'] = '127.0.0.1';
-        }
-        if (!isset($config['port'])) {
-            $config['port'] = 6379;
-        }
-        if (!isset($config['database'])) {
-            $config['database'] = 0;
-        }
-
-        if (!isset($config['database'])) {
-            $config['database'] = 0;
-        }
-        Resque::setBackend($config['host'].':'.$config['port'], $config['database']); 
         $stat = new ResqueStat(Resque::redis());
         $queues = $stat->getQueues();
         $workers=$stat->getWorkers();
