@@ -6,6 +6,11 @@ use Kodeks\PhpResque\Connectors\ResqueConnector;
 use Kodeks\PhpResque\Console\ListenCommand;
 use Kodeks\PhpResque\Console\SchedulerCommand;
 use Kodeks\PhpResque\Console\StatCommand;
+use Kodeks\PhpResque\Console\StopCommand;
+use Kodeks\PhpResque\Console\PauseCommand;
+use Kodeks\PhpResque\Console\ResumeCommand;
+use Kodeks\PhpResque\Console\RestartCommand;
+
 
 class PhpResqueServiceProvider extends QueueServiceProvider {
 
@@ -56,6 +61,35 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
             });
             $this->commands(array(
                 'kodeks::command.resque.stat'
+            ));
+              
+            $this->app->bind('kodeks::command.resque.resume', function($app) {
+                return new ResumeCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.resume'
+            ));
+            
+            $this->app->bind('kodeks::command.resque.pause', function($app) {
+                return new PauseCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.pause'
+            ));
+            
+            $this->app->bind('kodeks::command.resque.stop', function($app) {
+                return new StopCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.stop'
+            ));
+            
+            
+            $this->app->bind('kodeks::command.resque.restart', function($app) {
+                return new RestartCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.restart'
             ));
    
             $this->package('kodeks/php-resque');
