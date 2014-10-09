@@ -28,6 +28,11 @@ class ResqueWorkerEx extends Resque_Worker
         return $this->queues_list;
     }
     
+    public function getInterval() {
+        $id = (string)$this;
+        return Resque::redis()->get('worker:' . $id . ':interval');
+    }
+    
     private static function kill($signal, $pid) {
         return posix_kill($pid, $signal);
     }
@@ -84,6 +89,21 @@ class ResqueWorkerEx extends Resque_Worker
         $worker = new static($queues);
         $worker->setId($workerId);
         return $worker;
+    }
+    
+    
+    public function unregisterWorker()
+    {
+        parent::unregisterWorker();
+        $id = (string)$this;
+        Resque::redis()->del('worker:' . $id . ':interval');
+    }
+    
+    public function work($interval = 5)
+    {
+        $id = (string)$this;
+        Resque::redis()->set('worker:' . $id . ':interval', $interval);
+        parent::work($interval);
     }
     
     
