@@ -19,11 +19,9 @@ class StopCommandTest extends CommandsTestCase {
     
     public function testCommandStopByPid()
     { 
-        $this->unlockTest("testCommandStopByPid");
         $testQueue='testCommandStopByPid';
         $startOutput = new BufferedOutput;
-        Artisan::call('resque:listen',['--queue'=>$testQueue, '--count'=>1], $startOutput);
-        $this->lockTest("testCommandStopByPid");
+        $this->forkListen($testQueue, 1, $startOutput);
         sleep(1);
         $started = ResqueWorkerEx::findByQueue($testQueue);
         $this->assertEquals(1, count($started));
@@ -37,14 +35,12 @@ class StopCommandTest extends CommandsTestCase {
         $allAfterStop = ResqueWorkerEx::all();
         $this->assertEquals(0, count($allAfterStop)); 
     }
-    
+
     public function testCommandStopByQueue()
     {
-        $this->unlockTest("testCommandStopByQueue");
         $testQueue='testCommandStopByQueue';
         $startOutput = new BufferedOutput;
-        Artisan::call('resque:listen',['--queue'=>$testQueue, '--count'=>2], $startOutput);
-        $this->lockTest("testCommandStopByQueue");
+        $this->forkListen($testQueue, 2, $startOutput);
         sleep(1);
         $started = ResqueWorkerEx::findByQueue($testQueue);
         $this->assertEquals(2, count($started));
@@ -59,11 +55,9 @@ class StopCommandTest extends CommandsTestCase {
     
     public function testCommandStopAll()
     {
-        $this->unlockTest("testCommandStopAll");
         $testQueue='testCommandStopAll';
         $startOutput = new BufferedOutput;
-        Artisan::call('resque:listen',['--queue'=>$testQueue, '--count'=>2], $startOutput);
-        $this->lockTest("testCommandStopAll");
+        $this->forkListen($testQueue, 2, $startOutput);
         sleep(1);
         $countBeforeStop = count(ResqueWorkerEx::all());
         $this->assertEquals(2, $countBeforeStop);
@@ -71,9 +65,10 @@ class StopCommandTest extends CommandsTestCase {
         $output = new BufferedOutput;
         Artisan::call('resque:stop',['--all'=>1, '--force'=>1], $output);
         pcntl_wait($status);
-        sleep(5);
         $this->assertEquals(2, substr_count($output->fetch(), 'Result: OK'));
-        $allAfterStop = ResqueWorkerEx::all();
-        $this->assertEquals(0, count($allAfterStop));
+
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==0;
+        },15));
     }  
 }    

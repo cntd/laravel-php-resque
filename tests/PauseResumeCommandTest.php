@@ -15,49 +15,54 @@ class PauseResumeCommandTest extends CommandsTestCase {
     public function tearDown(){
         parent::tearDown();
         $this->killWorkers();
+        pcntl_wait($status);
     }
     
     public function testPause()
     { 
-        $this->unlockTest("testPause");
-        $testQueue='testPause';
+        $testQueue = 'testPause';
         $startOutput = new BufferedOutput;
-        Artisan::call('resque:listen',['--queue'=>$testQueue, '--count'=>1], $startOutput);
-        $this->lockTest("testPause");
+        $this->forkListen($testQueue, 1, $startOutput);
         sleep(1);
         $started = ResqueWorkerEx::findByQueue($testQueue);
         $this->assertEquals(1, count($started));
         
         $job_id1 = Queue::push("TestUnitJob",[],$testQueue);
-        sleep(5);
-        $this->assertFalse(Queue::isWaiting($job_id1));
+        $this->assertTrue($this->waitFor(function() use ($job_id1) {
+            return !Queue::isWaiting($job_id1);
+        },15));
+
+        
         Artisan::call('resque:pause',['--all'=>1]);
         $job_id2 = Queue::push("TestUnitJob",[],$testQueue);
-        sleep(5);
-        $this->assertTrue(Queue::isWaiting($job_id2));
+        $this->assertFalse($this->waitFor(function() use ($job_id2) {
+            return !Queue::isWaiting($job_id2);
+        },15));
     }
     
     public function testResume()
     { 
-        $this->unlockTest("testResume");
         $testQueue='testPause';
         $startOutput = new BufferedOutput;
-        Artisan::call('resque:listen',['--queue'=>$testQueue, '--count'=>1], $startOutput);
-        $this->lockTest("testResume");
+        $this->forkListen($testQueue, 1, $startOutput);
         sleep(1);
         $started = ResqueWorkerEx::findByQueue($testQueue);
         $this->assertEquals(1, count($started));
         
         Artisan::call('resque:pause',['--all'=>1]);
-        pcntl_wait($status);
         
         $job_id1 = Queue::push("TestUnitJob",[],$testQueue);
-        sleep(5);
-        $this->assertTrue(Queue::isWaiting($job_id1));
+
+        $this->assertFalse($this->waitFor(function() use ($job_id1) {
+            return !Queue::isWaiting($job_id1);
+        },5));
+        
+        
         Artisan::call('resque:resume',['--all'=>1]);
         $job_id2 = Queue::push("TestUnitJob",[],$testQueue);
-        sleep(10);
-        $this->assertFalse(Queue::isWaiting($job_id2));
+        $this->assertTrue($this->waitFor(function() use ($job_id2) {
+            return !Queue::isWaiting($job_id2);
+        },15));
     }
 
 

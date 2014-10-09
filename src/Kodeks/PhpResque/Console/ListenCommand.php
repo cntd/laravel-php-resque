@@ -52,6 +52,7 @@ public function fire() {
         $schedulerWorker = new ResqueScheduler_Worker();
         $schedulerWorker -> work($schedulerInterval);
     }
+    pcntl_wait($status);
 }
 
 protected function getOptions()

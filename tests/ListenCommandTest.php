@@ -1,4 +1,5 @@
 <?php
+require_once 'utils/CommandsTestCase.php';
 
 class ListenCommandTest extends CommandsTestCase {
     private $config;
@@ -19,16 +20,16 @@ class ListenCommandTest extends CommandsTestCase {
     public function testCommandRunListner()
     { 
         Artisan::call('resque:listen');
-        sleep(1);
-        $all = Resque_Worker::all();
-        $this->assertEquals(1, count($all));
+        $this->assertTrue($this->waitFor(function() {
+            return count(Resque_Worker::all())==1;
+        },15));
     }
     
     public function testCommandRunFewListners()
     { 
         Artisan::call('resque:listen', ['--count'=>3]);
-        sleep(1);
-        $all = Resque_Worker::all();
-        $this->assertEquals(3, count($all));
+        $this->assertTrue($this->waitFor(function() {
+            return count(Resque_Worker::all())==3;
+        },15));
     }
 }    
