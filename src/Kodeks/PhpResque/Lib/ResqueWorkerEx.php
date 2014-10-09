@@ -2,6 +2,7 @@
 
 use Resque_Worker;
 use Resque;
+use Kodeks\PhpResque\Lib\ResqueOutputRedis;
 
 class ResqueWorkerEx extends Resque_Worker
 {
@@ -119,5 +120,25 @@ class ResqueWorkerEx extends Resque_Worker
             }
         } 
         
+    }
+    
+    public function perform(\Resque_Job $job)
+    {
+        try {
+            ob_start(); 
+            \Resque_Event::trigger('afterFork', $job);
+            $job->perform();
+        }
+        catch(Exception $e) {
+            $this->log($job . ' failed: ' . $e->getMessage());
+            $job->fail($e);
+            return;
+        } finally {
+            $output = ob_get_clean();
+            ResqueOutputRedis::add($job->payload, $output, (string)$this, implode(",", $this->getQueues()));
+        }
+
+        $job->updateStatus(\Resque_Job_Status::STATUS_COMPLETE);
+        $this->log('done ' . $job);
     }
 }
