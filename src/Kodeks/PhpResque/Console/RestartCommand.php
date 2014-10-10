@@ -40,6 +40,7 @@ class RestartCommand extends ResqueCommand {
             while(ResqueWorkerEx::exists((string)$worker)) {
                 usleep(500000);
             }
+            $this->info("Start worker with: interval=" . $interval . ", queue=" . $queues);
             $this->forkListen($queues, $interval, 1);
         }
     }
