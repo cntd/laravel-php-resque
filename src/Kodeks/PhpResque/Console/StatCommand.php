@@ -41,6 +41,7 @@ class StatCommand extends ResqueCommand {
         foreach($workers as $worker) {
             $carbon = new Carbon($stat->getWorkerStartDate($worker));
             $this->info(self::TAB1.'Worker ID: ' . $worker);
+            $this->info(self::TAB2.'PID: ' . $worker->getPid());
             $this->info(self::TAB2.'Started: ' . $carbon);
             $this->info(self::TAB2.'Uptime: ' . $carbon->diffForHumans());
             $this->info(self::TAB2.'Processed Jobs: ' . $worker->getStat('processed'));
