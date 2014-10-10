@@ -2,8 +2,6 @@
 require_once 'utils/CommandsTestCase.php';
 
 class ListenCommandTest extends CommandsTestCase {
-    private $config;
-    private $redis;
 
     public function setUp(){
         parent::setUp();
@@ -19,7 +17,11 @@ class ListenCommandTest extends CommandsTestCase {
     
     public function testCommandRunListner()
     { 
-        Artisan::call('resque:listen');
+        $this->assertTrue($this->waitFor(function() {
+            return count(Resque_Worker::all())==0;
+        },15));
+        $testQueue = 'testCommandRunListner';
+        $this->forkListen($testQueue, 1);
         $this->assertTrue($this->waitFor(function() {
             return count(Resque_Worker::all())==1;
         },15));
@@ -27,7 +29,11 @@ class ListenCommandTest extends CommandsTestCase {
     
     public function testCommandRunFewListners()
     { 
-        Artisan::call('resque:listen', ['--count'=>3]);
+        $this->assertTrue($this->waitFor(function() {
+            return count(Resque_Worker::all())==0;
+        },15));
+        $testQueue = 'testCommandRunFewListners';
+        $this->forkListen($testQueue, 3);
         $this->assertTrue($this->waitFor(function() {
             return count(Resque_Worker::all())==3;
         },15));

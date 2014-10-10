@@ -13,16 +13,16 @@ class RestartCommand extends ResqueCommand {
         parent::__construct();
     }
 
-    public function forkListen($queue, $interval, $count=1, $output = null) {
+    public function forkListen($queue, $interval, $count=1, $output = null, $log_expire = 3600) {
         $pid = pcntl_fork();
         if ($pid == -1) {
              die('could not fork');
         } else if (!$pid) {
              // we are the child
             if($output !== null) {
-                Artisan::call('resque:listen',['--queue'=>$queue, '--count'=>$count, '--interval'=>$interval], $output);
+                Artisan::call('resque:listen',['--queue'=>$queue, '--count'=>$count, '--interval'=>$interval, '--log_expire'=>$log_expire], $output);
             } else {
-                Artisan::call('resque:listen',['--queue'=>$queue, '--count'=>$count, '--interval'=>$interval]);    
+                Artisan::call('resque:listen',['--queue'=>$queue, '--count'=>$count, '--interval'=>$interval, '--log_expire'=>$log_expire]);    
             }
             die();
         } 
@@ -34,13 +34,14 @@ class RestartCommand extends ResqueCommand {
         $workers = ResqueWorkerEx::all();
         foreach($workers as $worker) {
             $interval = $worker->getInterval();
+            $expire = $worker->getLogExpire();
             $result = $worker->signal($signal);
             $queues = implode(",", $worker->getQueues());
             $this->info("Senging stop signal for worker: " . $worker . " Result: " . ($result ? "OK" : "ERROR" ));
             while(ResqueWorkerEx::exists((string)$worker)) {
                 usleep(500000);
             }
-            $this->info("Start worker with: interval=" . $interval . ", queue=" . $queues);
+            $this->info("Start worker with: interval=" . $interval . ", queue=" . $queues . ", log_expire=" . $expire);
             $this->forkListen($queues, $interval, 1);
         }
     }

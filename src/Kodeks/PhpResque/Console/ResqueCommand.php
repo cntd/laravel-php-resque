@@ -6,6 +6,8 @@ use Resque;
 abstract class ResqueCommand extends Command {
     
     const DEFAULT_QUEUE = 'default';
+    const LOG_EXPIRE_DEFAULT = 3600;
+    
     protected $config;
 
     public function __construct(){

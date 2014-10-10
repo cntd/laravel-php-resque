@@ -22,9 +22,14 @@ public function fire() {
     $count = $this->input->getOption('count');
     $scheduler = $this->input->getOption('scheduler') ? true : false;
     $schedulerInterval = $this->input->getOption('scheduler-interval') ? $this->input->getOption('interval') : $interval;
+    $log_expire = $this->input->getOption('log_expire');
     
     if(!$queue) {
         $queue = isset($this->config['queue']) ? $this->config['queue'] : self::DEFAULT_QUEUE;
+    }
+    
+    if(!$log_expire) {
+        $log_expire = isset($this->config['log_expire']) ? $this->config['log_expire'] : self::LOG_EXPIRE_DEFAULT;
     }
 
     $queues = explode(',', $queue);
@@ -42,7 +47,7 @@ public function fire() {
                 $worker = new ResqueWorkerEx($queues);
                 $worker->logLevel = $logLevel;
                 $this->info('*** Starting worker PID:'.$worker->getPid(). " ***");
-                $worker->work($interval);
+                $worker->work($interval, $log_expire);
                 break;
         }
     }
@@ -63,6 +68,7 @@ protected function getOptions()
         ['count', NULL, InputOption::VALUE_OPTIONAL, 'Number of workers to create', 1],
         ['scheduler', NULL, InputOption::VALUE_OPTIONAL, 'With scheduler worker', false],
         ['scheduler-interval', NULL, InputOption::VALUE_OPTIONAL, 'Scheduler interval', false],
+        ['log_expire', NULL, InputOption::VALUE_OPTIONAL, 'Log expire time', false],
     ];
 }
 } 

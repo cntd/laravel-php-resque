@@ -34,6 +34,11 @@ class ResqueWorkerEx extends Resque_Worker
         return Resque::redis()->get('worker:' . $id . ':interval');
     }
     
+    public function getLogExpire() {
+        $id = (string)$this;
+        return Resque::redis()->get('worker:' . $id . ':log_expire');
+    }
+    
     private static function kill($signal, $pid) {
         return posix_kill($pid, $signal);
     }
@@ -98,12 +103,14 @@ class ResqueWorkerEx extends Resque_Worker
         parent::unregisterWorker();
         $id = (string)$this;
         Resque::redis()->del('worker:' . $id . ':interval');
+        Resque::redis()->del('worker:' . $id . ':log_expire');
     }
     
-    public function work($interval = 5)
+    public function work($interval = 5, $log_expire = 3600)
     {
         $id = (string)$this;
         Resque::redis()->set('worker:' . $id . ':interval', $interval);
+        Resque::redis()->set('worker:' . $id . ':log_expire', $log_expire);
         parent::work($interval);
     }
     
@@ -122,20 +129,38 @@ class ResqueWorkerEx extends Resque_Worker
         
     }
     
+    public function reserve()
+    {
+        $queues = $this->queues();
+        if(!is_array($queues)) {
+                return;
+        }
+        foreach($queues as $queue) {
+                $this->log('Checking ' . $queue, self::LOG_VERBOSE);
+                $job = ResqueJobEx::reserve($queue);
+                if($job) {
+                        $this->log('Found job on ' . $queue, self::LOG_VERBOSE);
+                        return $job;
+                }
+        }
+
+        return false;
+    }
+    
     public function perform(\Resque_Job $job)
     {
         try {
             ob_start(); 
             \Resque_Event::trigger('afterFork', $job);
             $job->perform();
-        }
-        catch(Exception $e) {
-            $this->log($job . ' failed: ' . $e->getMessage());
+        } catch(\Exception $e) {
+            $this->log($job . ' failed: ' . $e->getMessage());     
+            ResqueOutputRedis::error($job->payload, $e, $this, implode(",", $this->getQueues()), $this->getLogExpire());
             $job->fail($e);
             return;
         } finally {
             $output = ob_get_clean();
-            ResqueOutputRedis::add($job->payload, $output, (string)$this, implode(",", $this->getQueues()));
+            ResqueOutputRedis::add($job->payload, $output, $this, implode(",", $this->getQueues()), $this->getLogExpire());
         }
 
         $job->updateStatus(\Resque_Job_Status::STATUS_COMPLETE);
