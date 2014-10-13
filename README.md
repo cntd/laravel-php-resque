@@ -1,7 +1,7 @@
 laravel-php-resque
 =============================
 
-#Запуск тестов из под workbench
+##Запуск тестов из под workbench
 
 ./vendor/bin/phpunit workbench/kodeks/php-resque/tests/LogOutputTest
 
@@ -16,5 +16,7 @@ laravel-php-resque
 ./vendor/bin/phpunit workbench/kodeks/php-resque/tests/RestartCommandTest
 
 
+##Instalation
 
+*"kodeks/php-resque": "dev-master"*
 
