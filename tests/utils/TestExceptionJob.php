@@ -1,6 +1,7 @@
 <?php
+use Kodeks\PhpResque\Lib\ResqueJobInterface;
 
-class TestExceptionJob {
+class TestExceptionJob implements ResqueJobInterface {
     public function perform() {  
         
     }

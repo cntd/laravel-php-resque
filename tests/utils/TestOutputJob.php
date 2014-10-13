@@ -1,6 +1,7 @@
 <?php
+use Kodeks\PhpResque\Lib\ResqueJobInterface;
 
-class TestOutputJob {
+class TestOutputJob implements ResqueJobInterface{
     public function perform() {  
         
     }

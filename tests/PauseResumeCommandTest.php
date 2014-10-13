@@ -7,6 +7,7 @@ class PauseResumeCommandTest extends CommandsTestCase {
 
     public function setUp(){
         parent::setUp();
+        require_once 'utils/TestUnitJob.php';
         $this->redis=App::make('redis');
         $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));     
         $this->killWorkers();

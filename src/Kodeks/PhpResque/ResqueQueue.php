@@ -29,7 +29,7 @@ class ResqueQueue extends Queue  {
            throw new \Exception("Custom method support not available");
         } else if($job instanceof \Closure) {
            throw new \Exception("Closures not supported");    
-        } else if(!($job instanceof ResqueJobInterface)) {
+        } else if(!in_array("Kodeks\PhpResque\Lib\ResqueJobInterface", class_implements($job))) {
            throw new \Exception("Instance of job must implement ResqueJobInterface");       
         }
     }

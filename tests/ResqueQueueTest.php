@@ -8,6 +8,7 @@ class ResqueQueueTest extends TestCase {
     public function setUp(){
         parent::setUp();
         require_once 'utils/TestUnitJob.php';
+        require_once 'utils/NotImplementedJob.php';
         $this->redis=App::make('redis');
      
         $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));     
@@ -61,7 +62,15 @@ class ResqueQueueTest extends TestCase {
     public function testQueuePushCustomMethod()
     {   
         Queue::push("TestUnitJob@custom",[]);
-    }  
+    }
+    
+    /**
+     * @expectedException Exception
+     */
+    public function testJobImplement()
+    {   
+        Queue::push("NotImplementedJob",[]);
+    } 
     
     public function testJobStatus()
     { 
