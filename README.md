@@ -16,7 +16,12 @@ laravel-php-resque
 ./vendor/bin/phpunit workbench/kodeks/php-resque/tests/RestartCommandTest
 
 
-##Instalation
+##Installation
 
-*"kodeks/php-resque": "dev-master"*
-
+in **composer.json**:
+>```
+"require": {
+		...
+                "kodeks/php-resque": "dev-master"
+	}
+```
