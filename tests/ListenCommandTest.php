@@ -33,9 +33,9 @@ class ListenCommandTest extends CommandsTestCase {
             return count(Resque_Worker::all())==0;
         },15));
         $testQueue = 'testCommandRunFewListners';
-        $this->forkListen($testQueue, 3);
+        $this->forkListen($testQueue, 5);
         $this->assertTrue($this->waitFor(function() {
-            return count(Resque_Worker::all())==3;
-        },15));
+            return count(Resque_Worker::all())==5;
+        },30));
     }
 }    
