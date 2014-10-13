@@ -46,6 +46,8 @@ laravel-php-resque
 	),
 ```
 
+4) Remove dafault queue provider *'Illuminate\Queue\QueueServiceProvider'* from **app.php**
+
 ##Usage
 
 >```
