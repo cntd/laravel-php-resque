@@ -2,9 +2,8 @@
 
 use Resque;
 use Resque_Job_Status;
-use ResqueScheduler;
 use Illuminate\Queue\Queue;
-use Resque_Job_Class;
+use Kodeks\PhpResque\Lib\ResqueJobInterface;
 
 class ResqueQueue extends Queue  {
     
@@ -30,6 +29,8 @@ class ResqueQueue extends Queue  {
            throw new \Exception("Custom method support not available");
         } else if($job instanceof \Closure) {
            throw new \Exception("Closures not supported");    
+        } else if(!($job instanceof ResqueJobInterface)) {
+           throw new \Exception("Instance of job must implement ResqueJobInterface");       
         }
     }
     
