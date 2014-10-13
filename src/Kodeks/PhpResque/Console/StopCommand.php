@@ -64,7 +64,7 @@ public function fire() {
    
     foreach($workers as $worker) {
         $result = $worker->signal($signal);
-        $this->info("Senging signal for worker: " . $worker . " Result: " . ($result ? "OK" : "ERROR" ));
+        $this->info("Sending a signal for worker: " . $worker . " Result: " . ($result ? "OK" : "ERROR" ));
     }
 }
 
