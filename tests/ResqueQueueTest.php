@@ -11,7 +11,7 @@ class ResqueQueueTest extends TestCase {
         require_once 'utils/NotImplementedJob.php';
         $this->redis=App::make('redis');
      
-        $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));     
+        $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));   
         $this->clearRedisQueue($this->config['queue']);
     }  
     
@@ -45,16 +45,14 @@ class ResqueQueueTest extends TestCase {
     }
     public function testQueuePush()
     { 
-        $this->clearRedisRecord("TestUnitJob::fire");
-        
         $redis = $this->redis;
         $testData = ["test_data"=>time()];
-        Queue::push("TestUnitJob",$testData);
-        $worker = new Resque_Worker($this->config['queue']);
-        $worker->work(0);
-        usleep(100000);
-        $getSettedValue=$redis->get('TestUnitJob::fire');
-        $this->assertEquals(json_encode($testData), $getSettedValue);
+        $queueId = Queue::push("TestUnitJob",$testData, $this->config["queue"]);
+        $getSettedValue = $redis->lpop('resque:queue:'.$this->config["queue"]);
+        $queueData = json_decode($getSettedValue);   
+        $this->assertEmpty(array_diff($testData, (array)$queueData->args[0]));
+        $this->assertEquals("TestUnitJob", $queueData->class);
+        $this->assertEquals($queueId, $queueData->id);
     }  
     /**
      * @expectedException Exception
@@ -100,7 +98,7 @@ class ResqueQueueTest extends TestCase {
         $date = Carbon::now()->addSeconds(4);
         $testValue=time();
         $testData = ["test_data_by_date"=>$testValue];
-        Queue::later($date, 'TestUnitJob', $testData);
+        Queue::later($date, 'TestUnitJob', $testData, $this->config['queue']);
            
         $timestamp = ResqueScheduler::nextDelayedTimestamp(null);
         $this->assertFalse($timestamp);
@@ -132,7 +130,7 @@ class ResqueQueueTest extends TestCase {
         $redis = $this->redis;
         $testValue=time();
         $testData = ["test_data_by_date"=>$testValue];
-        Queue::later(3, 'TestUnitJob', $testData);
+        Queue::later(3, 'TestUnitJob', $testData, $this->config['queue']);
            
         $timestamp = ResqueScheduler::nextDelayedTimestamp(null);
         $this->assertFalse($timestamp);
@@ -158,5 +156,4 @@ class ResqueQueueTest extends TestCase {
         $this->assertEquals(json_encode($testData), $getSettedValue);
         
     }
-  
 }
