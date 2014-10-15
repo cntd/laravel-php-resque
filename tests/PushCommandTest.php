@@ -32,5 +32,22 @@ class PushCommandTest extends CommandsTestCase {
         $data = Resque::pop($this->config['queue']);
         $this->assertEquals(TestUnitJob::class, $data["class"]);  
     }
+    
+    public function testPushArgs()
+    { 
+        $testQueue='testPush';
+        $startOutput = new BufferedOutput;
+        $this->forkListen($testQueue, 1, $startOutput);
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==1;
+        },10));
+        
+        $dataArgs = ["test"=>time()];
+        
+        Artisan::call('resque:push', ['--job'=>TestUnitJob::class, '--args'=> json_encode($dataArgs), '--queue'=>$this->config['queue']]);  
+        $data = Resque::pop($this->config['queue']);
+        $this->assertEquals(TestUnitJob::class, $data["class"]);
+        $this->assertEmpty(array_diff($dataArgs, $data['args'][0]));  
+    }
 
 }    

@@ -14,15 +14,14 @@ class PushCommand extends ResqueCommand {
     public function fire() {
         $queue = $this->input->getOption('queue') ? $this->input->getOption('queue') : false;
         $job = $this->input->getOption('job');
-        $args = $this->input->getOption('args') ? $this->input->getOption('args') : false;
-        $data = [];
-        if($args) {
-            $data = json_decode($args);
+        $args = $this->input->getOption('args') ? $this->input->getOption('args') : [];
+        if(!empty($args)) {
+            $args = (array)json_decode($args);
         }
         if(!$queue) {
-            \Queue::push($job, $data);    
+            \Queue::push($job, $args);    
         } else {
-            \Queue::push($job, $data, $queue);
+            \Queue::push($job, $args, $queue);
         }
     }
 
@@ -31,7 +30,7 @@ class PushCommand extends ResqueCommand {
         return [
             ['queue', NULL, InputOption::VALUE_OPTIONAL, 'Name of queue', false],
             ['job', NULL, InputOption::VALUE_REQUIRED, 'Name of job-class', false],
-            ['args', NULL, InputOption::VALUE_OPTIONAL, 'Arguments in json format, please', false],
+            ['args', NULL, InputOption::VALUE_OPTIONAL, 'Job\'s arguments in json format', false],
         ];
     }
 }
