@@ -46,6 +46,10 @@ abstract class CommandsTestCase extends TestCase {
         return $pid;
     }
     
+    public function clearQueue($queue) {
+        while(Resque::pop($queue)) {}
+    }
+    
     public function killWorkers($pids=[]) {
         if(empty($pids)) {
             $all = ResqueWorkerEx::all();

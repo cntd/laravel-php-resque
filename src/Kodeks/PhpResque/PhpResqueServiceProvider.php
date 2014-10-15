@@ -10,7 +10,7 @@ use Kodeks\PhpResque\Console\StopCommand;
 use Kodeks\PhpResque\Console\PauseCommand;
 use Kodeks\PhpResque\Console\ResumeCommand;
 use Kodeks\PhpResque\Console\RestartCommand;
-
+use Kodeks\PhpResque\Console\PushCommand;
 
 class PhpResqueServiceProvider extends QueueServiceProvider {
 
@@ -90,6 +90,13 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
             });
             $this->commands(array(
                 'kodeks::command.resque.restart'
+            ));
+            
+            $this->app->bind('kodeks::command.resque.push', function($app) {
+                return new PushCommand();
+            });
+            $this->commands(array(
+                'kodeks::command.resque.push'
             ));
    
             $this->package('kodeks/php-resque');
