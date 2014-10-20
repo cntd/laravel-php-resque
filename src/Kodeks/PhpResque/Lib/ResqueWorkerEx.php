@@ -8,6 +8,12 @@ class ResqueWorkerEx extends Resque_Worker
 {
     protected $pid = null;
     protected $queues_list = null;
+    protected $interactive;
+    
+    public function __construct($queues, $interactive = false) {
+        parent::__construct($queues);
+        $this->interactive = $interactive;
+    }
     
     public function getPid() {
         if($this->pid !== null) {
@@ -147,6 +153,22 @@ class ResqueWorkerEx extends Resque_Worker
         return false;
     }
     
+    public function output($payload, $output, $queues, $log_expire) {
+        if($this->interactive) {
+            echo "\n" . $output;
+        } else {
+            ResqueOutputRedis::add($payload, $output, $this, $queues, $log_expire);
+        }
+    }
+    
+    public function error($payload, $error, $queues, $log_expire) {
+        if($this->interactive) {
+            echo "\n" . $error->getMessage();
+        } else {
+            ResqueOutputRedis::error($payload, $error, $this, $queues, $log_expire);
+        }
+    }
+    
     public function perform(\Resque_Job $job)
     {
         try {
@@ -155,12 +177,12 @@ class ResqueWorkerEx extends Resque_Worker
             $job->perform();
         } catch(\Exception $e) {
             $this->log($job . ' failed: ' . $e->getMessage());     
-            ResqueOutputRedis::error($job->payload, $e, $this, implode(",", $this->getQueues()), $this->getLogExpire());
+            $this->error($job->payload, $e, implode(",", $this->getQueues()), $this->getLogExpire());
             $job->fail($e);
             return;
         } finally {
             $output = ob_get_clean();
-            ResqueOutputRedis::add($job->payload, $output, $this, implode(",", $this->getQueues()), $this->getLogExpire());
+            $this->output($job->payload, $output, implode(",", $this->getQueues()), $this->getLogExpire());
         }
 
         $job->updateStatus(\Resque_Job_Status::STATUS_COMPLETE);

@@ -30,10 +30,10 @@ class StopCommandTest extends CommandsTestCase {
         
         $output = new BufferedOutput;
         Artisan::call('resque:stop',['--pid'=>$pid], $output);
-        pcntl_wait($status);
         $this->assertStringEndsWith('Result: OK', trim($output->fetch()));
-        $allAfterStop = ResqueWorkerEx::all();
-        $this->assertEquals(0, count($allAfterStop)); 
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==0;
+        },10));
     }
 
     public function testCommandStopByQueue()
@@ -49,8 +49,9 @@ class StopCommandTest extends CommandsTestCase {
         Artisan::call('resque:stop',['--queue'=>$testQueue], $output);
         pcntl_wait($status);
         $this->assertStringEndsWith('Result: OK', trim($output->fetch()));
-        $allAfterStop = ResqueWorkerEx::all();
-        $this->assertEquals(0, count($allAfterStop));
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==0;
+        },10));
     }
     
     public function testCommandStopAll()
@@ -64,7 +65,7 @@ class StopCommandTest extends CommandsTestCase {
         
         $output = new BufferedOutput;
         Artisan::call('resque:stop',['--all'=>1, '--force'=>1], $output);
-        pcntl_wait($status);
+        sleep(2);
         $this->assertEquals(2, substr_count($output->fetch(), 'Result: OK'));
 
         $this->assertTrue($this->waitFor(function() {

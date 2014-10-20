@@ -3,6 +3,7 @@ require_once 'utils/CommandsTestCase.php';
 
 use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 use Kodeks\PhpResque\Lib\ResqueLog;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 class LogOutputTest extends CommandsTestCase {
 
@@ -19,6 +20,25 @@ class LogOutputTest extends CommandsTestCase {
         parent::tearDown();
         $this->killWorkers();
         pcntl_wait($status);
+    }
+    
+    public function testInteractiveOutput() {
+        $testQueue = 'testInteractiveOutput';
+ 
+        $startOutput = new BufferedOutput;
+        $this->forkListen($testQueue, 1, $startOutput, 60, 1);
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==1;
+        },15));
+        $testData = ["test_data"=>rand(100, 99999)];
+        $id = Queue::push("TestOutputJob",$testData, $testQueue);
+        $this->assertTrue($this->waitFor(function() use ($id) {
+            return Resque_Job_Status::STATUS_COMPLETE == Queue::jobStatus($id);
+        },20));
+        $worker = ResqueWorkerEx::all();
+        $worker = array_pop($worker);
+        $output = ResqueLog::getByPid('output', $worker->getPid());
+        $this->assertEmpty($output);
     }
 
     public function testLog()
@@ -231,5 +251,5 @@ class LogOutputTest extends CommandsTestCase {
         }
         $this->assertTrue($equal_found1 && $equal_found2 && $equal_found3);
         
-    }  
+    }
 }    
