@@ -103,6 +103,27 @@ class LogOutputTest extends CommandsTestCase {
         $this->assertFalse($equal_found);    
     }
     
+    public function testErrorInreractiveLog()
+    { 
+        $testQueue = 'testErrorLog';
+        $expire = 120; 
+        $this->forkListen($testQueue, 1, null, $expire, 1);
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==1;
+        },15));
+   
+        $testData = ["test_data"=>time() . "-" . rand(10,1000)];
+        $id = Queue::push("TestExceptionJob",$testData, $testQueue);
+        
+        $this->assertTrue($this->waitFor(function() use ($id) {
+            return Resque_Job_Status::STATUS_FAILED == Queue::jobStatus($id);
+        },20)); 
+        
+        echo "\n ^ INTERACTIVE ERROR EXPECT HERE ^ \n";
+        
+  
+    }
+    
     public function testLogExpire()
     { 
         $testQueue = 'testLog';

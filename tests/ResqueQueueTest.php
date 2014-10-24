@@ -1,16 +1,17 @@
 <?php
 
-class ResqueQueueTest extends TestCase {
+use Kodeks\PhpResque\Lib\ResqueWorkerEx;
 
-    private $config;
-    private $redis;
+require_once 'utils/CommandsTestCase.php';
+
+class ResqueQueueTest extends CommandsTestCase {
 
     public function setUp(){
         parent::setUp();
         require_once 'utils/TestUnitJob.php';
         require_once 'utils/NotImplementedJob.php';
         $this->redis=App::make('redis');
-     
+        $this->killWorkers();
         $this->config = array_merge(Config::get('database.redis.default'), Config::get('queue.connections.resque'));   
         $this->clearRedisQueue($this->config['queue']);
     }  
@@ -155,5 +156,26 @@ class ResqueQueueTest extends TestCase {
         $getSettedValue=$redis->get('TestUnitJob::fire');
         $this->assertEquals(json_encode($testData), $getSettedValue);
         
+    }
+    
+    public function testPushDafaultQueue()
+    { 
+        $queue = Config::get("queue.connections.resque.queue");
+        $this->forkListen($queue, 1, null);
+        $this->assertTrue($this->waitFor(function() {
+            return count(ResqueWorkerEx::all())==1;
+        },15));
+
+        //Artisan::call('resque:push', ['--job'=>TestUnitJob::class, '--args'=> json_encode($dataArgs)]);  
+        $testData = ["test_data"=>time()];
+        $id1 = Queue::push("TestUnitJob",$testData);
+        $id2 = Queue::push("TestUnitJob",$testData, "diff_queue_name");
+        
+        $this->assertTrue($this->waitFor(function() use ($id1) {
+            return Resque_Job_Status::STATUS_COMPLETE == Queue::jobStatus($id1);
+        },10));
+        $this->assertFalse($this->waitFor(function() use ($id2) {
+            return Resque_Job_Status::STATUS_COMPLETE == Queue::jobStatus($id2);
+        },10));
     }
 }

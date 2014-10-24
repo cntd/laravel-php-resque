@@ -161,9 +161,13 @@ class ResqueWorkerEx extends Resque_Worker
         }
     }
     
-    public function error($payload, $error, $queues, $log_expire) {
+    public function error($payload, \Exception $error, $queues, $log_expire) {
         if($this->interactive) {
-            echo "\n" . $error->getMessage();
+            $colored = new ColorOutput();
+            echo $colored->getColoredString("\n === ERROR ===", "red");
+            echo $colored->getColoredString("\n" . $error->getMessage(), "red");
+            echo $colored->getColoredString("\n" . $error->getTraceAsString(), "red");
+            echo $colored->getColoredString("\n =============", "red");
         } else {
             ResqueOutputRedis::error($payload, $error, $this, $queues, $log_expire);
         }
