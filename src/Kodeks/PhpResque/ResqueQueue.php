@@ -100,6 +100,10 @@ class ResqueQueue extends Queue  {
     public function pop($queue = null) {
         return Resque::pop($this->getQueue($queue));
     }
+    
+    public function size($queue = null) {
+        return Resque::size($this->getQueue($queue));
+    }
 
     public function pushRaw($payload, $queue = null, array $options = array()) {
         throw new \Exception("Method not available");
