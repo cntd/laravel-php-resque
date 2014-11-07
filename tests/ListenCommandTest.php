@@ -16,7 +16,7 @@ class ListenCommandTest extends CommandsTestCase {
         parent::tearDown();
         $this->killWorkers();
     }
-    /*
+
     public function testCommandRunListner()
     { 
         $this->assertTrue($this->waitFor(function() {
@@ -40,7 +40,7 @@ class ListenCommandTest extends CommandsTestCase {
             return count(Resque_Worker::all())==5;
         },30));
     }
-    */
+
     public function testCommandInteractiveListner()
     { 
         $this->assertTrue($this->waitFor(function() {
