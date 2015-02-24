@@ -5,7 +5,7 @@ use Kodeks\PhpResque\Lib\ResqueStat;
 use ResqueScheduler;
 use Resque_Stat;
 use Kodeks\PhpResque\Console\ResqueCommand;
-use Carbon;
+use Carbon\Carbon;
 use Kodeks\PhpResque\Lib\ColorOutput;
 
 class StatCommand extends ResqueCommand {
