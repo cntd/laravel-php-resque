@@ -1,10 +1,20 @@
-<?php
-use Illuminate\Support\SerializableClosure;
-class Mailer {
-    public function handleQueuedMessage($job, $data) { 
+<?php namespace Kodeks\PhpResque\Mailer;
+
+use Kodeks\PhpResque\Lib\ResqueJobInterface;
+
+class Mailer extends \Illuminate\Mail\Mailer {
+
+	public function queue($view, array $data, $callback, $queue = null)
+	{
+		$callback = $this->buildQueueCallable($callback);
+		return \Queue::push(\Kodeks\PhpResque\Jobs\SendMail::class, compact('view', 'data', 'callback'), $queue);
+	}
+
+/*
+    public function handleQueuedMessage($job, $data) {
         Log::info('Sending mail data: ',$data);
         try {
-            
+
             $cb = isset($data["callback"]) ? unserialize($data["callback"]) : null;
             if(!($cb instanceof SerializableClosure)) {
                 throw new Exception("Callback function error");
@@ -20,7 +30,8 @@ class Mailer {
             Mail::send($data['view'], $data['data'], $callback);
         } catch (Exception $e) {
             Log::error('Send mail error:'.$e->getMessage(), $e->getTrace());
-        }   
-            
+        }
+
     }
+*/
 }

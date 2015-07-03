@@ -19,6 +19,7 @@ class ResqueWorkerEx extends Resque_Worker
         if($this->pid !== null) {
             return $this->pid; 
         }
+
         $params = explode(':', (string)$this);
         $this->pid = $params[1];
         $this->queues_list = explode(",", $params[2]);
@@ -120,8 +121,8 @@ class ResqueWorkerEx extends Resque_Worker
         parent::work($interval);
     }
     
-    
-    public static function restart() {
+    /* deprecated
+    public  function restart() {
         $workers = static::all();
         if (!empty($workers)) {
             foreach ($workers as $worker) {
@@ -134,7 +135,8 @@ class ResqueWorkerEx extends Resque_Worker
         } 
         
     }
-    
+    */
+
     public function reserve()
     {
         $queues = $this->queues();
