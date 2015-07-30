@@ -108,6 +108,7 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
 				$loader = \Illuminate\Foundation\AliasLoader::getInstance();
 				$loader->alias('Mailer', '\Kodeks\PhpResque\Mailer\Mailer');
 			});
+
 	}
 
 }
