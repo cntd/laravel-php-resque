@@ -101,9 +101,12 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
 
             $this->package('kodeks/php-resque');
 
+			/* В собственный provider
 			$this->app['mailer'] = $this->app->share( function ($app){
 				return new \Kodeks\PhpResque\Mailer\Mailer($app['view'], $app['swift.mailer'], $app['events']);
 			});
+			*/
+
 			$this->app->booting( function (){
 				$loader = \Illuminate\Foundation\AliasLoader::getInstance();
 				$loader->alias('Mailer', '\Kodeks\PhpResque\Mailer\Mailer');
