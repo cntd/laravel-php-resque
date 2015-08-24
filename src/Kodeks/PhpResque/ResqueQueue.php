@@ -51,6 +51,8 @@ class ResqueQueue extends Queue  {
 		$this->checkJob($job);
         $result = call_user_func_array("Resque::enqueue",$args);
 		$redis->rpush("resque:job_list", (string)$result);
+		$redis->set("resque:data:" . $result, json_encode($data));
+		$redis->sadd("resque:jobs_in_queues:" . $queue, (string)$result);
 		return $result;
     }
 
