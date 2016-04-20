@@ -10,6 +10,6 @@ class SendMail implements ResqueJobInterface
 		$data = $this->args["data"];
 		$view = $this->args["view"];
 		$callback = $this->args['callback'];
-		\Illuminate\Mail\Mailer::send($view, $data, $callback);
+		\Mail::send($view, $data, $callback);
 	}
 }
