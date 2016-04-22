@@ -11,6 +11,7 @@ use Kodeks\PhpResque\Console\PauseCommand;
 use Kodeks\PhpResque\Console\ResumeCommand;
 use Kodeks\PhpResque\Console\RestartCommand;
 use Kodeks\PhpResque\Console\PushCommand;
+use Resque;
 
 class PhpResqueServiceProvider extends QueueServiceProvider {
 
@@ -43,6 +44,11 @@ class PhpResqueServiceProvider extends QueueServiceProvider {
 
 	public function boot() {
             parent::boot();
+
+            $redisConf = \Config::get("database.redis.default");
+            $redisServer = $redisConf['host'] . ":" . $redisConf['port'];
+            Resque::setBackend($redisServer, $redisConf['database']);
+
             $this->app->bind('kodeks::command.resque.listen', function($app) {
                 return new ListenCommand();
             });
