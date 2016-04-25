@@ -4,12 +4,11 @@
     "keywords": [ "php-resque", "queues", "laravel" ],
     "require": {
         	"php": ">=5.4.0",
-                "psr/log": "1.0.0",
-                "illuminate/config": "4.2.x",
-                "illuminate/queue": "4.2.x",
-                "chrisboulton/php-resque": "1.2.x",
-                "chrisboulton/php-resque-scheduler": "1.1",
-                "nesbot/Carbon": "*"
+            "illuminate/config": "4.2.x",
+            "illuminate/queue": "4.2.x",
+            "chrisboulton/php-resque": "1.2.x",
+            "chrisboulton/php-resque-scheduler": "1.1",
+            "nesbot/Carbon": "*"
                 
     },
     "autoload": {
