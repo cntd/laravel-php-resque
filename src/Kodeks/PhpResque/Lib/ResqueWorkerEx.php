@@ -194,4 +194,15 @@ class ResqueWorkerEx extends Resque_Worker
         $job->updateStatus(\Resque_Job_Status::STATUS_COMPLETE);
         $this->log('done ' . $job);
     }
+
+    /**
+     * Register this worker in Redis.
+     */
+    public function registerWorker()
+    {
+        Resque::redis()->sadd('workers', $this);
+        setlocale(LC_TIME, "");
+        setlocale(LC_ALL, "en");
+        Resque::redis()->set('worker:' . (string)$this . ':started', strftime('%a %b %d %H:%M:%S %Z %Y'));
+    }
 }
