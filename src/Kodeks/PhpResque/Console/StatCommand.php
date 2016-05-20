@@ -45,12 +45,18 @@ class StatCommand extends ResqueCommand {
         $this->info($output->getColoredString('Workers stats...', "light_purple"));
         $this->info('Workers active: ' . $output->getColoredString(count($workers), "yellow"));
         foreach($workers as $worker) {
-            $carbon = new Carbon($stat->getWorkerStartDate($worker));
+            try {
+                $carbon = new Carbon($stat->getWorkerStartDate($worker));
+                $uptime = $carbon->diffForHumans();
+            } catch(\Exception $e) {
+                $uptime = (string)$worker;
+            }
+            $started = (string)$worker;
             $this->info(self::TAB1.'Worker ID: ' . $output->getColoredString($worker, "yellow"));
             $this->info(self::TAB2.'PID: ' . $output->getColoredString($worker->getPid(), "yellow"));
             $this->info(self::TAB2.'Interval: ' . $output->getColoredString($worker->getInterval(), "yellow"));
-            $this->info(self::TAB2.'Started: ' . $output->getColoredString($carbon, "yellow"));
-            $this->info(self::TAB2.'Uptime: ' . $output->getColoredString($carbon->diffForHumans(), "yellow"));
+            $this->info(self::TAB2.'Started: ' . $output->getColoredString($started, "yellow"));
+            $this->info(self::TAB2.'Uptime: ' . $output->getColoredString($uptime, "yellow"));
             $this->info(self::TAB2.'Processed Jobs: ' . $output->getColoredString($worker->getStat('processed'), "yellow"));
             $this->info(self::TAB2.'Failed Jobs: ' . $output->getColoredString($worker->getStat('failed'), "yellow"));
         }
