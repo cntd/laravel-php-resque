@@ -9,6 +9,12 @@
             "nesbot/Carbon": "*"
                 
     },
+    "repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/chrisboulton/php-resque"
+		},
+    ],
     "autoload": {
         "classmap": [
             "src/Kodeks/PhpResque/Mailer"
