@@ -6,8 +6,8 @@
         	"php": ">=5.4.0",
             "illuminate/config": "4.2.x",
             "illuminate/queue": "4.2.x",
-            "chrisboulton/php-resque": "dev-master#6273fdd19394806e158dc56145c1b004f43cbad1",
-            "chrisboulton/php-resque-scheduler": "1.1",
+            "chrisboulton/php-resque": "dev-master",
+            "chrisboulton/php-resque-scheduler": "dev-master",
             "nesbot/Carbon": "*"
                 
     },
