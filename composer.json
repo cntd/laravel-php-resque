@@ -4,17 +4,13 @@
     "keywords": [ "php-resque", "queues", "laravel" ],
     "require": {
         	"php": ">=5.4.0",
+            "illuminate/config": "4.2.x",
+            "illuminate/queue": "4.2.x",
             "chrisboulton/php-resque": "dev-master",
             "chrisboulton/php-resque-scheduler": "1.1",
             "nesbot/Carbon": "*"
                 
     },
-    "repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/chrisboulton/php-resque"
-		}
-    ],
     "autoload": {
         "classmap": [
             "src/Kodeks/PhpResque/Mailer"
