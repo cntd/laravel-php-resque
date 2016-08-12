@@ -137,7 +137,7 @@ class ResqueWorkerEx extends Resque_Worker
     }
     */
 
-    public function reserve()
+    public function reserve($blocking = false, $timeout = null)
     {
         $queues = $this->queues();
         if(!is_array($queues)) {
